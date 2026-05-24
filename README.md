@@ -1,6 +1,6 @@
 # CARE-R1
 
-Official code for training CARE-R1.
+Official codebase for training and evaluating **CARE-R1**.
 ---
 
 ## Setup
