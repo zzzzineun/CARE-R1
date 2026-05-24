@@ -61,20 +61,6 @@ RewardFunc = Union[str, PreTrainedModel, Callable[[list, list], list[float]]]
 
 
 class Qwen2VLCareTrainer(Trainer):
-    """
-    Trainer combining tgtmask (corrupted-image gap weighting) with training improvements.
-
-    tgtmask idea:
-    - Generate completions from both original and corrupted images
-    - Compute reward gap = mean_acc(original) - mean_acc(corrupted)
-    - Scale advantages by w = 1 + exp_scaled_gap to amplify visually informative samples
-
-    Additional improvements over standard GRPO:
-    1. Dynamic Sampling: exclude groups where std(reward) ≈ 0
-    2. Token-level Loss: normalize by total valid tokens, not per-seq
-    3. Overlong Filtering: zero-out sequences truncated at max length
-    """
-
     def __init__(
         self,
         model: Union[str, PreTrainedModel],
@@ -90,7 +76,6 @@ class Qwen2VLCareTrainer(Trainer):
         max_pixels: Optional[int] = 12845056,
         min_pixels: Optional[int] = 3136,
         attn_implementation: str = "flash_attention_2",
-        # ── tgtmask 파라미터 ────────────────────────────────────────────────
         corr_type: str = "black",
         corr_folder: str = "images_corr",
         base_image_path: str = "",
@@ -500,17 +485,14 @@ class Qwen2VLCareTrainer(Trainer):
         advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
         advantages = w_expanded * advantages
 
-        # ── Dynamic Sampling: reward 분산=0인 그룹 제외 ──────────────────────────────────
         std_grouped_for_filter = rewards.view(batch_size, num_generations).std(dim=1)
         valid_groups = (std_grouped_for_filter > 1e-4)
         valid_mask = valid_groups.repeat_interleave(num_generations, dim=0)
         completion_mask = completion_mask * valid_mask.unsqueeze(1).int()
 
-        # ── Loss (Token-level normalization) ──────────────────────────
         per_token_loss = torch.exp(per_token_logps - per_token_logps.detach()) * advantages.unsqueeze(1)
         per_token_loss = -per_token_loss
 
-        # ── Token-level Loss: 전체 유효 토큰 수로 정규화 ─────────────────────────────────
         total_tokens = completion_mask.sum()
         if total_tokens > 0:
             loss = (per_token_loss * completion_mask).sum() / total_tokens
