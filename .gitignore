@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model weights & large data
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+data/huggingface_cache/
+
+# Logs & outputs
+logs/
+*.log
+wandb/
+
+# OS
+.DS_Store
