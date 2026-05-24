@@ -1,5 +1,6 @@
 # CARE-R1
 
+Official code for training CARE-R1.
 ---
 
 ## Setup
