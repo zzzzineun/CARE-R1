@@ -1,6 +1,7 @@
 # CARE-R1
 
 Official codebase for training and evaluating **CARE-R1**.
+
 ---
 
 ## Setup
@@ -10,6 +11,7 @@ bash setup.sh
 ```
 
 This creates a `care-r1` conda environment (Python 3.11), installs the patched `open-r1-multimodal` package.
+
 ---
 
 ## Training
